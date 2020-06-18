@@ -47,7 +47,7 @@ class InputExample(object):
         self.text_b = text_b
         self.label = label
 
-def load_CLINC150_with_specific_domain(domain_name, k):
+def load_CLINC150_with_specific_domain(domain_name, k, augment=False):
     gold_intent_set = []
     for domain, intent_list in domain2intents.items():
         gold_intent_set+=intent_list
@@ -110,13 +110,22 @@ def load_CLINC150_with_specific_domain(domain_name, k):
 
     '''k-shot sampling'''
     '''train'''
-    train_examples = []
+    sampled_train_intent2examples={}
     for intent, example_list in train_intent2examples.items():
-        print('example_list:', example_list)
         sampled_examples = random.sample(example_list, k)
+        sampled_train_intent2examples[intent]=sampled_examples
+    train_examples = []
+    for intent, example_list in sampled_train_intent2examples.items():
+        sampled_examples = example_list#random.sample(example_list, k)
         for example in sampled_examples:
-            train_examples.append(
-                InputExample(guid='train_ex', text_a=example, text_b=None, label=intent))
+            if augment:
+                for intent_j, example_list_j in sampled_train_intent2examples.items():
+                    text_b = random.choice(example_list_j)
+                    train_examples.append(
+                        InputExample(guid='train_ex', text_a=example, text_b=text_b, label=intent))
+            else:
+                train_examples.append(
+                    InputExample(guid='train_ex', text_a=example, text_b=None, label=intent))            
     dev_examples = []
     for intent, example_list in dev_intent2examples.items():
         sampled_examples = example_list#random.sample(example_list, k)
