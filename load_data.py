@@ -112,6 +112,7 @@ def load_CLINC150_with_specific_domain(domain_name, k):
     '''train'''
     train_examples = []
     for intent, example_list in train_intent2examples.items():
+        print('example_list:', example_list)
         sampled_examples = random.sample(example_list, k)
         for example in sampled_examples:
             train_examples.append(
