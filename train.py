@@ -40,12 +40,12 @@ from scipy.special import softmax
 
 from load_data import load_CLINC150_with_specific_domain
 
-from transformers.tokenization_roberta import RobertaTokenizer
+# from transformers.tokenization_roberta import RobertaTokenizer
 from transformers.optimization import AdamW
-from transformers.modeling_roberta import RobertaModel#RobertaForSequenceClassification
+# from transformers.modeling_roberta import RobertaModel#RobertaForSequenceClassification
 
-# from transformers.modeling_bert import BertModel
-# from transformers.tokenization_bert import BertTokenizer
+from transformers.modeling_bart import BartModel
+from transformers.tokenization_bart import BartTokenizer
 # from bert_common_functions import store_transformers_models
 
 logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)
 # import torch.nn as nn
 
 bert_hidden_dim = 1024
-pretrain_model_dir = 'roberta-large' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
+pretrain_model_dir = 'bart-large' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
 
 
 class RobertaForSequenceClassification(nn.Module):
@@ -65,8 +65,8 @@ class RobertaForSequenceClassification(nn.Module):
         super(RobertaForSequenceClassification, self).__init__()
         self.tagset_size = tagset_size
 
-        self.roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
-        # self.roberta_single= BertModel.from_pretrained(pretrain_model_dir)
+        # self.roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
+        self.roberta_single= BartModel.from_pretrained(pretrain_model_dir)
         # self.single_hidden2tag = nn.Linear(bert_hidden_dim, tagset_size)
         self.single_hidden2tag = RobertaClassificationHead(bert_hidden_dim, tagset_size)
 
@@ -571,8 +571,8 @@ def main():
     model = RobertaForSequenceClassification(num_labels)
 
 
-    tokenizer = RobertaTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
-    # tokenizer = BertTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
+    # tokenizer = RobertaTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
+    tokenizer = BartTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
 
     model.to(device)
 
