@@ -11,7 +11,7 @@ def load_CLINC150():
 
 
 def read_supplementary():
-    content = read_pdf('/export/home/Dataset/CLINC150/supplementary.pdf', output_format='json')
+    content = read_pdf('/export/home/Dataset/CLINC150/supplementary.pdf', output_format='json', pages=2)
     print(content)
 
 if __name__ == "__main__":
