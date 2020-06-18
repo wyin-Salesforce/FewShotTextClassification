@@ -129,7 +129,7 @@ def load_CLINC150_with_specific_domain(domain_name, k):
         for example in sampled_examples:
             test_examples.append(
                 InputExample(guid='test_ex', text_a=example, text_b=None, label=intent))
-
+    print('size:', len(train_examples), len(dev_examples), len(test_examples))
     return train_examples, dev_examples, test_examples, interested_intents
 
 
