@@ -56,8 +56,8 @@ logger = logging.getLogger(__name__)
 # from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
 # import torch.nn as nn
 
-bert_hidden_dim = 1024
-pretrain_model_dir = 'roberta-large' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
+bert_hidden_dim = 768#1024
+pretrain_model_dir = 'roberta-base' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
 
 
 class RobertaForSequenceClassification(nn.Module):
