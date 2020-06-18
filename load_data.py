@@ -1,6 +1,6 @@
 import json
 import codecs
-from tabula import read_pdf
+
 
 domain2intents={'banking':['transfer','transactions','balance','freeze account',
 'pay bill', 'bill balance', 'bill due', 'interest rate', 'routine number',
