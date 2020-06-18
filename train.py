@@ -549,7 +549,7 @@ def main():
     train_examples, dev_examples, eval_examples, label_list = load_CLINC150_with_specific_domain('banking', 5)
     num_labels = len(label_list)
 
-    train_examples = None
+    # train_examples = None
     num_train_optimization_steps = None
     if args.do_train:
         # train_examples = processor.get_RTE_as_train('/export/home/Dataset/glue_data/RTE/train.tsv') #train_pu_half_v1.txt
