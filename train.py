@@ -85,10 +85,9 @@ class RobertaForSequenceClassification(nn.Module):
         # score_single = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
         '''bart'''
         x = outputs_single[0]  # last hidden state
-        eos_mask = input_ids.eq(self.config.eos_token_id)
-        # if len(torch.unique(eos_mask.sum(1))) > 1:
-        #     raise ValueError("All examples must have the same number of <eos> tokens.")
-        hidden_states_single = x[eos_mask, :].view(x.size(0), -1, x.size(-1))[:, -1, :]
+        hidden_states_single = x[:,0,:]
+        # eos_mask = input_ids.eq(self.config.eos_token_id)
+        # hidden_states_single = x[eos_mask, :].view(x.size(0), -1, x.size(-1))[:, -1, :]
         score_single = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
 
         # pair_train_input_ids, pair_train_input_mask, pair_train_segment_ids, pair_train_label_ids = batch_pairs
