@@ -78,6 +78,9 @@ class RobertaForSequenceClassification(nn.Module):
     def forward(self, input_ids, input_mask, input_seg, labels):
         # single_train_input_ids, single_train_input_mask, single_train_segment_ids, single_train_label_ids = batch_single
         outputs_single = self.roberta_single(input_ids, input_mask, None)
+        for output in outputs_single:
+            print(output.shape, output)
+        exit(0)
         hidden_states_single = outputs_single[1] #(batch, hidden)
         # print('hidden_states_single:', hidden_states_single)
         score_single = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
