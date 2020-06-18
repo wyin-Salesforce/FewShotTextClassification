@@ -3,7 +3,7 @@ import codecs
 
 
 domain2intents={'banking':['transfer','transactions','balance','freeze account',
-'pay bill', 'bill balance', 'bill due', 'interest rate', 'routine number',
+'pay bill', 'bill balance', 'bill due', 'interest rate', 'routing number',
 'minimum payment', 'order checks', 'pin change', 'report fraud', 'account blocked',
 'spending history'],
 'credit cards':['credit score', 'report lost card', 'credit limit', 'rewards balance',
@@ -11,7 +11,7 @@ domain2intents={'banking':['transfer','transactions','balance','freeze account',
 'redeem rewards', 'credit limit change', 'damaged card', 'replacement card duration',
 'improve credit score', 'expiration date'],
 'kitchen & dining':['recipe','restaurant reviews','calories','nutrition info',
-'restaurant suggestion', 'ingredient list', 'ingredient substitution', 'cook time',
+'restaurant suggestion', 'ingredients list', 'ingredient substitution', 'cook time',
 'food last', 'meal suggestion', 'restaurant reservation', 'confirm reservation',
 'how busy', 'cancel reservation','accept reservation'],
 'home':['shopping list', 'shopping list update', 'next song', 'play music', 'update playlist',
@@ -30,10 +30,13 @@ domain2intents={'banking':['transfer','transactions','balance','freeze account',
 'rollover 401k', 'income'],
 'small talk':['greeting', 'goodbye', 'tell joke', 'where are you from', 'how old are you', 'what is your name',
 'who made you', 'thank you', 'what can I ask you', 'what are your hobbies', 'do you have pets', 'are you a bot',
-'meaning of life', 'who do you work from', 'fun fact'],
-'meta':['change AI name', 'change user name', 'cancel', 'user name', 'reset settings', 'whispter mode',
+'meaning of life', 'who do you work for', 'fun fact'],
+'meta':['change AI name', 'change user name', 'cancel', 'user name', 'reset settings', 'whisper mode',
 'repeat', 'no', 'yes', 'maybe', 'change language', 'change accent', 'change volume', 'change speed',
 'sync device']}
+
+dataIntent_2_realIntent={'routing':'routing number', 'what can i ask you':'what can I ask you', 'change ai name':'change AI name',
+'min payment':'minimum payment', 'accept reservations': 'accept reservation'}
 
 def load_CLINC150():
     gold_intent_set = []
@@ -49,6 +52,8 @@ def load_CLINC150():
         for sub_list in value:
             sentence = sub_list[0]
             intent = ' '.join(sub_list[1].split('_'))
+            intent = dataIntent_2_realIntent.get(intent, intent)
+
             intent_set.add(intent.strip())
     print(intent_set-gold_intent_set)
 
