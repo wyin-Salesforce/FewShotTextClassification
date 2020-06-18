@@ -45,7 +45,8 @@ from transformers.optimization import AdamW
 # from transformers.modeling_roberta import RobertaModel#RobertaForSequenceClassification
 
 from transformers.modeling_bart import BartModel
-from transformers.tokenization_bart import BartTokenizer
+# from transformers.tokenization_bart import BartTokenizer
+from transformers import BartTokenizer, BartConfig
 # from bert_common_functions import store_transformers_models
 
 logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
@@ -57,7 +58,7 @@ logger = logging.getLogger(__name__)
 # import torch.nn as nn
 
 bert_hidden_dim = 1024
-pretrain_model_dir = 'bart-large' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
+pretrain_model_dir = 'facebook/bart-large' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
 
 
 class RobertaForSequenceClassification(nn.Module):
