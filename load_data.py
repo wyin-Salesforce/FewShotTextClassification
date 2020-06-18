@@ -124,6 +124,8 @@ def load_CLINC150_with_specific_domain(domain_name, k, random_seed, augment=Fals
                     text_b = random.choice(example_list_j)
                     train_examples.append(
                         InputExample(guid='train_ex', text_a=example, text_b=text_b, label=intent))
+                    train_examples.append(
+                        InputExample(guid='train_ex', text_a=example, text_b=intent_j, label=intent))
             else:
                 train_examples.append(
                     InputExample(guid='train_ex', text_a=example, text_b=None, label=intent))
