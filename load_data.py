@@ -1,6 +1,6 @@
 import json
 import codecs
-
+import random
 
 domain2intents={'banking':['transfer','transactions','balance','freeze account',
 'pay bill', 'bill balance', 'bill due', 'interest rate', 'routing number',
