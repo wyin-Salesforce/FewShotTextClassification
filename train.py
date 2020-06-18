@@ -70,6 +70,7 @@ class RobertaForSequenceClassification(nn.Module):
         self.roberta_single= BartModel.from_pretrained(pretrain_model_dir)
         # self.single_hidden2tag = nn.Linear(bert_hidden_dim, tagset_size)
         self.single_hidden2tag = RobertaClassificationHead(bert_hidden_dim, tagset_size)
+        self.config= BartConfig(pretrain_model_dir)
 
         # self.roberta_pair = RobertaModel.from_pretrained(pretrain_model_dir)
         # self.pair_hidden2score = nn.Linear(bert_hidden_dim, 1)
@@ -78,11 +79,16 @@ class RobertaForSequenceClassification(nn.Module):
     def forward(self, input_ids, input_mask, input_seg, labels):
         # single_train_input_ids, single_train_input_mask, single_train_segment_ids, single_train_label_ids = batch_single
         outputs_single = self.roberta_single(input_ids, input_mask, None)
-        for output in outputs_single:
-            print(output.shape, output)
-        exit(0)
-        hidden_states_single = outputs_single[1] #(batch, hidden)
-        # print('hidden_states_single:', hidden_states_single)
+
+        '''roberta'''
+        # hidden_states_single = outputs_single[1] #(batch, hidden)
+        # score_single = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
+        '''bart'''
+        x = outputs_single[0]  # last hidden state
+        eos_mask = input_ids.eq(self.config.eos_token_id)
+        # if len(torch.unique(eos_mask.sum(1))) > 1:
+        #     raise ValueError("All examples must have the same number of <eos> tokens.")
+        hidden_states_single = x[eos_mask, :].view(x.size(0), -1, x.size(-1))[:, -1, :]
         score_single = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
 
         # pair_train_input_ids, pair_train_input_mask, pair_train_segment_ids, pair_train_label_ids = batch_pairs
