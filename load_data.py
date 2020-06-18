@@ -47,7 +47,8 @@ class InputExample(object):
         self.text_b = text_b
         self.label = label
 
-def load_CLINC150_with_specific_domain(domain_name, k, augment=False):
+def load_CLINC150_with_specific_domain(domain_name, k, random_seed, augment=False):
+    random.seed(random_seed)
     gold_intent_set = []
     for domain, intent_list in domain2intents.items():
         gold_intent_set+=intent_list
@@ -125,7 +126,7 @@ def load_CLINC150_with_specific_domain(domain_name, k, augment=False):
                         InputExample(guid='train_ex', text_a=example, text_b=text_b, label=intent))
             else:
                 train_examples.append(
-                    InputExample(guid='train_ex', text_a=example, text_b=None, label=intent))            
+                    InputExample(guid='train_ex', text_a=example, text_b=None, label=intent))
     dev_examples = []
     for intent, example_list in dev_intent2examples.items():
         sampled_examples = example_list#random.sample(example_list, k)
