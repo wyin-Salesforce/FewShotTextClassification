@@ -124,9 +124,9 @@ def load_CLINC150_with_specific_domain(domain_name, k, random_seed, augment=Fals
                     text_b = random.choice(example_list_j)
                     train_examples.append(
                         InputExample(guid='train_ex', text_a=example, text_b=text_b, label=intent))
-                '''use intent name as example itself'''
-                train_examples.append(
-                    InputExample(guid='train_ex', text_a=intent, text_b=None, label=intent))
+                # '''use intent name as example itself'''
+                # train_examples.append(
+                #     InputExample(guid='train_ex', text_a=intent, text_b=None, label=intent))
             else:
                 train_examples.append(
                     InputExample(guid='train_ex', text_a=example, text_b=None, label=intent))
