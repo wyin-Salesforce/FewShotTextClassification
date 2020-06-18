@@ -48,7 +48,7 @@ def load_CLINC150():
         print(key, len(value))
         for sub_list in value:
             sentence = sub_list[0]
-            intent = sub_list[1]
+            intent = ' '.join(sub_list[1].split('_'))
             intent_set.add(intent.strip())
     print(intent_set-gold_intent_set)
 
