@@ -47,8 +47,7 @@ class InputExample(object):
         self.text_b = text_b
         self.label = label
 
-def load_CLINC150_with_specific_domain(domain_name, k, random_seed, augment=False):
-    random.seed(random_seed)
+def load_CLINC150_with_specific_domain(domain_name, k, augment=False):
     gold_intent_set = []
     for domain, intent_list in domain2intents.items():
         gold_intent_set+=intent_list
