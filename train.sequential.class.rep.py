@@ -757,7 +757,7 @@ def main():
                             # raw_similarity_scores = torch.mm(reps_batch, class_representation_matrix)
                             raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_representation_matrix, 0,1)) #(batch, 15*history)
                             biased_similarity_scores = raw_similarity_scores+class_bias_vector.view(-1, raw_similarity_scores.shape[1])
-                            logits = torch.sum(biased_similarity_scores.view(args.eval_batch_size, -1, num_labels), dim=1) #(batch, #class)
+                            logits = torch.mean(biased_similarity_scores.view(args.eval_batch_size, -1, num_labels), dim=1) #(batch, #class)
                             logits+=logits_LR
 
 
