@@ -79,7 +79,7 @@ class RobertaForSequenceClassification(nn.Module):
         outputs_single = self.roberta_single(input_ids, input_mask, None)
         hidden_states_single = outputs_single[1] #(batch, hidden)
         # print('hidden_states_single:', hidden_states_single)
-        score_single, last_reps = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
+        score_single, last_reps, bias = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
 
         # pair_train_input_ids, pair_train_input_mask, pair_train_segment_ids, pair_train_label_ids = batch_pairs
         # # outputs_pair = self.roberta_pair(pair_train_input_ids, pair_train_input_mask,pair_train_segment_ids)
@@ -90,7 +90,7 @@ class RobertaForSequenceClassification(nn.Module):
         # score_pair = self.pair_hidden2score(hidden_states_pair).view(-1, self.tagset_size) #(batch, tagset)
 
         logits = score_single#+score_pair
-        return logits, last_reps
+        return logits, last_reps, bias
 
 class RobertaClassificationHead(nn.Module):
     """wenpeng overwrite it so to accept matrix as input"""
@@ -108,7 +108,7 @@ class RobertaClassificationHead(nn.Module):
         x = torch.tanh(x)
         x_rep = self.dropout(x)
         x = self.out_proj(x_rep)
-        return x, x_rep
+        return x, x_rep, self.out_proj.bias
 
 class InputExample(object):
     """A single training/test example for simple sequence classification."""
@@ -679,7 +679,7 @@ def main():
                 model.train()
                 batch = tuple(t.to(device) for t in batch)
                 input_ids, input_mask, segment_ids, label_ids = batch
-                logits,_ = model(input_ids, input_mask, None, labels=None)
+                logits,_,_ = model(input_ids, input_mask, None, labels=None)
                 loss_fct = CrossEntropyLoss()
                 loss = loss_fct(logits.view(-1, num_labels), label_ids.view(-1))
 
@@ -712,7 +712,9 @@ def main():
                         # gold_label_ids+=list(label_ids.detach().cpu().numpy())
 
                         with torch.no_grad():
-                            logits, last_reps = model(input_ids, input_mask, None, labels=None)
+                            logits, last_reps, bias = model(input_ids, input_mask, None, labels=None)
+                        print('bias:', bias)
+                        exit(0)
                         last_reps_list.append(last_reps.mean(dim=0, keepdim=True)) #(1, 1024)
                     class_reps_i = torch.cat(last_reps_list, dim=0) #(15, 1024)
                     class_reps_history.append(class_reps_i)

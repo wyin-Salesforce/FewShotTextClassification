@@ -779,4 +779,4 @@ if __name__ == "__main__":
     because classifier not initlized, so smaller learning rate 2e-6
     and fine-tune roberta-large needs more epochs
     '''
-# CUDA_VISIBLE_DEVICES=6 python -u train.py --task_name rte --do_train --do_lower_case --num_train_epochs 200 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --do_data_aug
+# CUDA_VISIBLE_DEVICES=7 python -u train.py --task_name rte --do_train --do_lower_case --num_train_epochs 200 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --do_data_aug
