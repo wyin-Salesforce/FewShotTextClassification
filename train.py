@@ -40,13 +40,12 @@ from scipy.special import softmax
 
 from load_data import load_CLINC150_with_specific_domain
 
-# from transformers.tokenization_roberta import RobertaTokenizer
+from transformers.tokenization_roberta import RobertaTokenizer
 from transformers.optimization import AdamW
-# from transformers.modeling_roberta import RobertaModel#RobertaForSequenceClassification
+from transformers.modeling_roberta import RobertaModel#RobertaForSequenceClassification
 
-from transformers.modeling_bart import BartModel
-# from transformers.tokenization_bart import BartTokenizer
-from transformers import BartTokenizer, BartConfig
+# from transformers.modeling_bert import BertModel
+# from transformers.tokenization_bert import BertTokenizer
 # from bert_common_functions import store_transformers_models
 
 logging.basicConfig(format = '%(asctime)s - %(levelname)s - %(name)s -   %(message)s',
@@ -58,7 +57,7 @@ logger = logging.getLogger(__name__)
 # import torch.nn as nn
 
 bert_hidden_dim = 1024
-pretrain_model_dir = 'facebook/bart-large' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
+pretrain_model_dir = 'roberta-large' #'roberta-large' , 'roberta-large-mnli', 'bert-large-uncased'
 
 
 class RobertaForSequenceClassification(nn.Module):
@@ -66,11 +65,10 @@ class RobertaForSequenceClassification(nn.Module):
         super(RobertaForSequenceClassification, self).__init__()
         self.tagset_size = tagset_size
 
-        # self.roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
-        self.roberta_single= BartModel.from_pretrained(pretrain_model_dir)
+        self.roberta_single= RobertaModel.from_pretrained(pretrain_model_dir)
+        # self.roberta_single= BertModel.from_pretrained(pretrain_model_dir)
         # self.single_hidden2tag = nn.Linear(bert_hidden_dim, tagset_size)
         self.single_hidden2tag = RobertaClassificationHead(bert_hidden_dim, tagset_size)
-        self.config= BartConfig(pretrain_model_dir)
 
         # self.roberta_pair = RobertaModel.from_pretrained(pretrain_model_dir)
         # self.pair_hidden2score = nn.Linear(bert_hidden_dim, 1)
@@ -79,15 +77,8 @@ class RobertaForSequenceClassification(nn.Module):
     def forward(self, input_ids, input_mask, input_seg, labels):
         # single_train_input_ids, single_train_input_mask, single_train_segment_ids, single_train_label_ids = batch_single
         outputs_single = self.roberta_single(input_ids, input_mask, None)
-
-        '''roberta'''
-        # hidden_states_single = outputs_single[1] #(batch, hidden)
-        # score_single = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
-        '''bart'''
-        x = outputs_single[0]  # last hidden state
-        hidden_states_single = x[:,0,:]
-        # eos_mask = input_ids.eq(self.config.eos_token_id)
-        # hidden_states_single = x[eos_mask, :].view(x.size(0), -1, x.size(-1))[:, -1, :]
+        hidden_states_single = outputs_single[1] #(batch, hidden)
+        # print('hidden_states_single:', hidden_states_single)
         score_single = self.single_hidden2tag(hidden_states_single) #(batch, tag_set)
 
         # pair_train_input_ids, pair_train_input_mask, pair_train_segment_ids, pair_train_label_ids = batch_pairs
@@ -580,8 +571,8 @@ def main():
     model = RobertaForSequenceClassification(num_labels)
 
 
-    # tokenizer = RobertaTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
-    tokenizer = BartTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
+    tokenizer = RobertaTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
+    # tokenizer = BertTokenizer.from_pretrained(pretrain_model_dir, do_lower_case=args.do_lower_case)
 
     model.to(device)
 
