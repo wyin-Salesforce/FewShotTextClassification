@@ -738,7 +738,7 @@ def main():
 
                             with torch.no_grad():
                                 logits = model(input_ids, input_mask, labels=None)
-                            print('logits:', logits)
+                            # print('logits:', logits)
                             logits = logits[0]
 
                             loss_fct = CrossEntropyLoss()
