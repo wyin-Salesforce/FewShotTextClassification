@@ -579,6 +579,7 @@ def main():
     # pretrain_model_dir = '/export/home/Dataset/BERT_pretrained_mine/crossdataentail/trainMNLItestRTE/0.8772563176895307'
 
     model_config = BartConfig(pretrain_model_dir)
+    print('origin model_config:', model_config)
     model_config.num_labels=num_labels
     # model = BartForSequenceClassification(model_config)
     # print('before:', model.classification_head.out_proj.out_features)
