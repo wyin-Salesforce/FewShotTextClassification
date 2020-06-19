@@ -719,7 +719,7 @@ def main():
                     if len(class_reps_history)>5:
                         class_reps_history = class_reps_history[-5:]
 
-                    class_representation_matrix = torch.cat(class_reps_history, dim=0) #(15*5, 1024)
+                    class_representation_matrix = torch.cat(class_reps_history[-1:], dim=0) #(15*5, 1024)
                     '''
                     start evaluate on dev set after this epoch
                     '''
@@ -809,4 +809,4 @@ if __name__ == "__main__":
     because classifier not initlized, so smaller learning rate 2e-6
     and fine-tune roberta-large needs more epochs
     '''
-# CUDA_VISIBLE_DEVICES=6 python -u train.py --task_name rte --do_train --do_lower_case --num_train_epochs 200 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 1 --do_data_aug
+# CUDA_VISIBLE_DEVICES=6 python -u train.sequential.class.rep.py --task_name rte --do_train --do_lower_case --num_train_epochs 200 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 1 --do_data_aug
