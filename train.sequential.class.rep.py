@@ -672,6 +672,7 @@ def main():
 
         iter_co = 0
         class_reps_history = []
+        class_bias_history = []
         for _ in trange(int(args.num_train_epochs), desc="Epoch"):
             tr_loss = 0
             nb_tr_examples, nb_tr_steps = 0, 0
@@ -718,10 +719,13 @@ def main():
                         last_reps_list.append(last_reps.mean(dim=0, keepdim=True)) #(1, 1024)
                     class_reps_i = torch.cat(last_reps_list, dim=0) #(15, 1024)
                     class_reps_history.append(class_reps_i)
+                    class_bias_history.append(bias)
                     if len(class_reps_history)>5:
                         class_reps_history = class_reps_history[-5:]
+                        class_bias_history = class_bias_history[-5:]
 
-                    class_representation_matrix = torch.cat(class_reps_history[-1:], dim=0) #(15*5, 1024)
+                    class_representation_matrix = torch.cat(class_reps_history, dim=0) #(15*5, 1024)
+                    class_bias_vector = torch.cat(class_bias_history) #15*5
                     '''
                     start evaluate on dev set after this epoch
                     '''
@@ -752,7 +756,7 @@ def main():
 
                             # raw_similarity_scores = torch.mm(reps_batch, class_representation_matrix)
                             raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_representation_matrix, 0,1)) #(batch, 15*history)
-                            biased_similarity_scores = raw_similarity_scores+bias.view(-1, raw_similarity_scores.shape[1])
+                            biased_similarity_scores = raw_similarity_scores+class_bias_vector.view(-1, raw_similarity_scores.shape[1])
                             logits = torch.sum(biased_similarity_scores.view(args.eval_batch_size, -1, num_labels), dim=1) #(batch, #class)
                             logits+=logits_LR
 
