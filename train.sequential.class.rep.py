@@ -747,7 +747,7 @@ def main():
                             gold_label_ids+=list(label_ids.detach().cpu().numpy())
 
                             with torch.no_grad():
-                                _, reps_batch = model(input_ids, input_mask, None, labels=None)
+                                _, reps_batch, _ = model(input_ids, input_mask, None, labels=None)
                             # logits = logits[0]
 
                             # raw_similarity_scores = torch.mm(reps_batch, class_representation_matrix)
