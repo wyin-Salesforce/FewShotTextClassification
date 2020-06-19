@@ -747,14 +747,14 @@ def main():
                             gold_label_ids+=list(label_ids.detach().cpu().numpy())
 
                             with torch.no_grad():
-                                _, reps_batch, _ = model(input_ids, input_mask, None, labels=None)
+                                logits_LR, reps_batch, _ = model(input_ids, input_mask, None, labels=None)
                             # logits = logits[0]
 
                             # raw_similarity_scores = torch.mm(reps_batch, class_representation_matrix)
                             raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_representation_matrix, 0,1)) #(batch, 15*history)
                             biased_similarity_scores = raw_similarity_scores+bias.view(-1, raw_similarity_scores.shape[1])
                             logits = torch.sum(biased_similarity_scores.view(args.eval_batch_size, -1, num_labels), dim=1) #(batch, #class)
-
+                            logits+=logits_LR
 
 
                             # loss_fct = CrossEntropyLoss()
