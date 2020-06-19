@@ -581,9 +581,10 @@ def main():
     model_config = BartConfig(pretrain_model_dir)
     model_config.num_labels=num_labels
     model = BartForSequenceClassification(model_config)
+    print('before:', model.classification_head.out_proj.out_features)
     print('model_config:', model_config)
     model = BartForSequenceClassification.from_pretrained(pretrain_model_dir)
-    print(model.classification_head.out_proj.out_features)
+    print('after:', model.classification_head.out_proj.out_features)
     exit(0)
 
 
