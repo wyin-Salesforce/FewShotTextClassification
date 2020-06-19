@@ -578,13 +578,11 @@ def main():
     # pretrain_model_dir = 'roberta-large-mnli' #'roberta-large' , 'roberta-large-mnli'
     # pretrain_model_dir = '/export/home/Dataset/BERT_pretrained_mine/crossdataentail/trainMNLItestRTE/0.8772563176895307'
 
-    model_config = BartConfig(pretrain_model_dir)
-    print('origin model_config:', model_config)
-    model_config.num_labels=num_labels
-    # model = BartForSequenceClassification(model_config)
-    # print('before:', model.classification_head.out_proj.out_features)
-    print('model_config:', model_config)
-    model = BartForSequenceClassification.from_pretrained(pretrain_model_dir, config=model_config)
+    # model_config = BartConfig(pretrain_model_dir)
+    # print('origin model_config:', model_config)
+    # model_config.num_labels=num_labels
+    # print('model_config:', model_config)
+    model = BartForSequenceClassification.from_pretrained(pretrain_model_dir)#, config=model_config)
     # print('after:', model.classification_head.out_proj.out_features)
     # exit(0)
 
