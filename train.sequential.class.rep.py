@@ -776,7 +776,7 @@ def main():
                         # exit(0)
                         last_reps_list.append(last_reps.mean(dim=0, keepdim=True)) #(1, 1024)
                     class_reps_finetune = torch.cat(last_reps_list, dim=0) #(15, 1024)
-                    bias_finetune = bias
+                    bias_finetune = bias[:15] #the first 15 classes is for the target domain
 
                     # class_reps_history.append(class_reps_i)
                     # class_bias_history.append(bias)
