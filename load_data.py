@@ -302,10 +302,14 @@ def load_CLINC150_without_specific_domain(domain_name):
                 intent = 'oos'
                 if key == 'oos_val':
                     examples = dev_intent2examples.get(intent)
+                    if examples is None:
+                        examples = []
                     examples.append(sentence)
                     dev_intent2examples[intent] = examples
                 else:
                     examples = test_intent2examples.get(intent)
+                    if examples is None:
+                        examples = []
                     examples.append(sentence)
                     test_intent2examples[intent] = examples
     '''confirm everything is correct'''
