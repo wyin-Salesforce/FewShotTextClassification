@@ -724,8 +724,8 @@ def main():
                         class_reps_history = class_reps_history[-5:]
                         class_bias_history = class_bias_history[-5:]
 
-                    class_representation_matrix = torch.cat(class_reps_history[-1:], dim=0) #(15*5, 1024)
-                    class_bias_vector = torch.cat(class_bias_history[-1:]) #15*5
+                    class_representation_matrix = torch.cat(class_reps_history[-2:], dim=0) #(15*5, 1024)
+                    class_bias_vector = torch.cat(class_bias_history[-2:]) #15*5
                     '''
                     start evaluate on dev set after this epoch
                     '''
@@ -757,8 +757,8 @@ def main():
                             # raw_similarity_scores = torch.mm(reps_batch, class_representation_matrix)
                             raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_representation_matrix, 0,1)) #(batch, 15*history)
                             biased_similarity_scores = raw_similarity_scores+class_bias_vector.view(-1, raw_similarity_scores.shape[1])
-                            logits = torch.sum(biased_similarity_scores.view(args.eval_batch_size, -1, num_labels), dim=1) #(batch, #class)
-                            logits = (1-0.8)*logits+0.8*logits_LR
+                            logits = torch.mean(biased_similarity_scores.view(args.eval_batch_size, -1, num_labels), dim=1) #(batch, #class)
+                            # logits = (1-0.8)*logits+0.8*logits_LR
 
 
                             # loss_fct = CrossEntropyLoss()
