@@ -38,7 +38,7 @@ from scipy.special import softmax
 # from scipy.stats import pearsonr, spearmanr
 # from sklearn.metrics import matthews_corrcoef, f1_score
 
-from load_data import load_CLINC150_with_specific_domain_sequence
+from load_data import load_CLINC150_with_specific_domain_sequence, load_CLINC150_without_specific_domain
 
 from transformers.tokenization_roberta import RobertaTokenizer
 from transformers.optimization import AdamW
@@ -552,20 +552,20 @@ def main():
     # label_list = processor.get_labels() #["entailment", "neutral", "contradiction"]
     # label_list = ['How_do_I_create_a_profile_v4', 'Profile_Switch_v4', 'Deactivate_Active_Devices_v4', 'Ads_on_Hulu_v4', 'Watching_Hulu_with_Live_TV_v4', 'Hulu_Costs_and_Commitments_v4', 'offline_downloads_v4', 'womens_world_cup_v5', 'forgot_username_v4', 'confirm_account_cancellation_v4', 'Devices_to_Watch_HBO_on_v4', 'remove_add_on_v4', 'Internet_Speed_for_HD_and_4K_v4', 'roku_related_questions_v4', 'amazon_related_questions_v4', 'Clear_Browser_Cache_v4', 'ads_on_ad_free_plan_v4', 'inappropriate_ads_v4', 'itunes_related_questions_v4', 'Internet_Speed_Recommendations_v4', 'NBA_Basketball_v5', 'unexpected_charges_v4', 'change_billing_date_v4', 'NFL_on_Hulu_v5', 'How_to_delete_a_profile_v4', 'Devices_to_Watch_Hulu_on_v4', 'Manage_your_Hulu_subscription_v4', 'cancel_hulu_account_v4', 'disney_bundle_v4', 'payment_issues_v4', 'home_network_location_v4', 'Main_Menu_v4', 'Resetting_Hulu_Password_v4', 'Update_Payment_v4', 'I_need_general_troubleshooting_help_v4', 'What_is_Hulu_v4', 'sprint_related_questions_v4', 'Log_into_TV_with_activation_code_v4', 'Game_of_Thrones_v4', 'video_playback_issues_v4', 'How_to_edit_a_profile_v4', 'Watchlist_Remove_Video_v4', 'spotify_related_questions_v4', 'Deactivate_Login_Sessions_v4', 'Transfer_to_Agent_v4', 'Use_Hulu_Internationally_v4']
 
-
-    train_examples, dev_examples, eval_examples, label_list = load_CLINC150_with_specific_domain_sequence('banking', args.kshot, augment=args.do_data_aug)
-    num_labels = len(label_list)
+    meta_train_examples, meta_dev_examples, meta_test_examples, meta_label_list = load_CLINC150_without_specific_domain('banking')
+    train_examples, dev_examples, eval_examples, finetune_label_list = load_CLINC150_with_specific_domain_sequence('banking', args.kshot, augment=args.do_data_aug)
+    label_list=finetune_label_list+meta_label_list+['oos']
+    assert len(label_list) ==  15*10+1
+    num_labels = len(label_list)-1
+    assert num_labels = 15*10
 
     # train_examples = None
-    num_train_optimization_steps = None
-    if args.do_train:
-        # train_examples = processor.get_RTE_as_train('/export/home/Dataset/glue_data/RTE/train.tsv') #train_pu_half_v1.txt
-        # train_examples = get_data_hulu_fewshot('train', 5)
-
-        num_train_optimization_steps = int(
-            len(train_examples) / args.train_batch_size / args.gradient_accumulation_steps) * args.num_train_epochs
-        if args.local_rank != -1:
-            num_train_optimization_steps = num_train_optimization_steps // torch.distributed.get_world_size()
+    # num_train_optimization_steps = None
+    # if args.do_train:
+    #     num_train_optimization_steps = int(
+    #         len(train_examples) / args.train_batch_size / args.gradient_accumulation_steps) * args.num_train_epochs
+    #     if args.local_rank != -1:
+    #         num_train_optimization_steps = num_train_optimization_steps // torch.distributed.get_world_size()
 
     # Prepare model
     # cache_dir = args.cache_dir if args.cache_dir else os.path.join(str(PYTORCH_TRANSFORMERS_CACHE), 'distributed_{}'.format(args.local_rank))
@@ -595,6 +595,18 @@ def main():
     max_test_acc = 0.0
     max_dev_acc = 0.0
     if args.do_train:
+        meta_train_features = convert_examples_to_features(
+            meta_train_examples, label_list, args.max_seq_length, tokenizer, output_mode,
+            cls_token_at_end=False,#bool(args.model_type in ['xlnet']),            # xlnet has a cls token at the end
+            cls_token=tokenizer.cls_token,
+            cls_token_segment_id=0,#2 if args.model_type in ['xlnet'] else 0,
+            sep_token=tokenizer.sep_token,
+            sep_token_extra=True,#bool(args.model_type in ['roberta']),           # roberta uses an extra separator b/w pairs of sentences, cf. github.com/pytorch/fairseq/commit/1684e166e3da03f5b600dbb7855cb98ddfcd0805
+            pad_on_left=False,#bool(args.model_type in ['xlnet']),                 # pad on the left for xlnet
+            pad_token=tokenizer.convert_tokens_to_ids([tokenizer.pad_token])[0],
+            pad_token_segment_id=0)#4 if args.model_type in ['xlnet'] else 0,)
+
+
         train_features = convert_examples_to_features(
             train_examples, label_list, args.max_seq_length, tokenizer, output_mode,
             cls_token_at_end=False,#bool(args.model_type in ['xlnet']),            # xlnet has a cls token at the end
@@ -610,7 +622,7 @@ def main():
         # dev_examples = processor.get_RTE_as_dev('/export/home/Dataset/glue_data/RTE/dev.tsv')
         # dev_examples = get_data_hulu('dev')
         dev_features = convert_examples_to_features(
-            dev_examples, label_list, args.max_seq_length, tokenizer, output_mode,
+            dev_examples, finetune_label_list, args.max_seq_length, tokenizer, output_mode,
             cls_token_at_end=False,#bool(args.model_type in ['xlnet']),            # xlnet has a cls token at the end
             cls_token=tokenizer.cls_token,
             cls_token_segment_id=0,#2 if args.model_type in ['xlnet'] else 0,
@@ -634,7 +646,7 @@ def main():
         # eval_examples = processor.get_RTE_as_test('/export/home/Dataset/RTE/test_RTE_1235.txt')
         # eval_examples = get_data_hulu('test')
         eval_features = convert_examples_to_features(
-            eval_examples, label_list, args.max_seq_length, tokenizer, output_mode,
+            eval_examples, finetune_label_list, args.max_seq_length, tokenizer, output_mode,
             cls_token_at_end=False,#bool(args.model_type in ['xlnet']),            # xlnet has a cls token at the end
             cls_token=tokenizer.cls_token,
             cls_token_segment_id=0,#2 if args.model_type in ['xlnet'] else 0,
@@ -656,7 +668,18 @@ def main():
         logger.info("***** Running training *****")
         logger.info("  Num examples = %d", len(train_examples))
         logger.info("  Batch size = %d", args.train_batch_size)
-        logger.info("  Num steps = %d", num_train_optimization_steps)
+        # logger.info("  Num steps = %d", num_train_optimization_steps)
+
+        all_input_ids = torch.tensor([f.input_ids for f in meta_train_features], dtype=torch.long)
+        all_input_mask = torch.tensor([f.input_mask for f in meta_train_features], dtype=torch.long)
+        all_segment_ids = torch.tensor([f.segment_ids for f in meta_train_features], dtype=torch.long)
+        all_label_ids = torch.tensor([f.label_id for f in meta_train_features], dtype=torch.long)
+
+        meta_train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
+        meta_train_sampler = RandomSampler(meta_train_data)
+        meta_train_dataloader = DataLoader(meta_train_data, sampler=meta_train_sampler, batch_size=args.train_batch_size)
+
+
         all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
@@ -673,6 +696,41 @@ def main():
         iter_co = 0
         class_reps_history = []
         class_bias_history = []
+        '''first train on meta_train tasks'''
+        for meta_epoch_i in trange(10, desc="metaEpoch"):
+            for step, batch in enumerate(tqdm(meta_train_dataloader, desc="Iteration")):
+                model.train()
+                batch = tuple(t.to(device) for t in batch)
+                input_ids, input_mask, segment_ids, label_ids = batch
+                logits,_,_ = model(input_ids, input_mask, None, labels=None)
+                loss_fct = CrossEntropyLoss()
+                loss = loss_fct(logits.view(-1, num_labels), label_ids.view(-1))
+
+                if n_gpu > 1:
+                    loss = loss.mean() # mean() to average on multi-gpu.
+                if args.gradient_accumulation_steps > 1:
+                    loss = loss / args.gradient_accumulation_steps
+
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
+                print('meta_epoch_i', meta_epoch_i, ' loss:', loss)
+
+        '''get class representation after pretraining'''
+        model.eval()
+        last_reps_list = []
+        for input_ids, input_mask, segment_ids, label_ids in support_dataloader:
+            input_ids = input_ids.to(device)
+            input_mask = input_mask.to(device)
+            segment_ids = segment_ids.to(device)
+            label_ids = label_ids.to(device)
+            # gold_label_ids+=list(label_ids.detach().cpu().numpy())
+
+            with torch.no_grad():
+                logits, last_reps, bias = model(input_ids, input_mask, None, labels=None)
+            last_reps_list.append(last_reps.mean(dim=0, keepdim=True)) #(1, 1024)
+        class_reps_pretraining = torch.cat(last_reps_list, dim=0) #(15, 1024)
+        '''second finetune'''
         for _ in trange(int(args.num_train_epochs), desc="Epoch"):
             tr_loss = 0
             nb_tr_examples, nb_tr_steps = 0, 0
@@ -717,15 +775,17 @@ def main():
                         # print('bias:', bias)
                         # exit(0)
                         last_reps_list.append(last_reps.mean(dim=0, keepdim=True)) #(1, 1024)
-                    class_reps_i = torch.cat(last_reps_list, dim=0) #(15, 1024)
-                    class_reps_history.append(class_reps_i)
-                    class_bias_history.append(bias)
-                    if len(class_reps_history)>5:
-                        class_reps_history = class_reps_history[-5:]
-                        class_bias_history = class_bias_history[-5:]
+                    class_reps_finetune = torch.cat(last_reps_list, dim=0) #(15, 1024)
+                    bias_finetune = bias
 
-                    class_representation_matrix = torch.cat(class_reps_history[-5:], dim=0) #(15*5, 1024)
-                    class_bias_vector = torch.cat(class_bias_history[-5:]) #15*5
+                    # class_reps_history.append(class_reps_i)
+                    # class_bias_history.append(bias)
+                    # if len(class_reps_history)>5:
+                    #     class_reps_history = class_reps_history[-5:]
+                    #     class_bias_history = class_bias_history[-5:]
+                    #
+                    # class_representation_matrix = torch.cat(class_reps_history[-5:], dim=0) #(15*5, 1024)
+                    # class_bias_vector = torch.cat(class_bias_history[-5:]) #15*5
                     '''
                     start evaluate on dev set after this epoch
                     '''
@@ -754,11 +814,17 @@ def main():
                                 logits_LR, reps_batch, _ = model(input_ids, input_mask, None, labels=None)
                             # logits = logits[0]
 
-                            # raw_similarity_scores = torch.mm(reps_batch, class_representation_matrix)
-                            raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_representation_matrix, 0,1)) #(batch, 15*history)
-                            biased_similarity_scores = raw_similarity_scores+class_bias_vector.view(-1, raw_similarity_scores.shape[1])
-                            logits = torch.max(biased_similarity_scores.view(args.eval_batch_size, -1, num_labels), dim=1)[0] #(batch, #class)
-                            logits = (1-0.9)*logits+0.9*logits_LR
+                            '''pretraining logits'''
+                            raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_reps_pretraining, 0,1)) #(batch, 15)
+                            biased_similarity_scores = raw_similarity_scores+bias_finetune.view(-1, raw_similarity_scores.shape[1])
+                            logits_pretrain = torch.max(biased_similarity_scores.view(args.eval_batch_size, -1, num_labels), dim=1)[0] #(batch, #class)
+                            '''finetune logits'''
+                            raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_reps_finetune, 0,1)) #(batch, 15*history)
+                            biased_similarity_scores = raw_similarity_scores+bias_finetune.view(-1, raw_similarity_scores.shape[1])
+                            logits_finetune = torch.max(biased_similarity_scores.view(args.eval_batch_size, -1, num_labels), dim=1)[0] #(batch, #class)
+
+                            logits = logits_pretrain+logits_finetune
+                            # logits = (1-0.9)*logits+0.9*logits_LR
 
 
                             # loss_fct = CrossEntropyLoss()
@@ -780,11 +846,13 @@ def main():
                         '''
                         pred_probs = softmax(preds,axis=1)
                         pred_label_ids = list(np.argmax(pred_probs, axis=1))
-                        # pred_indices = np.argmax(pred_probs, axis=1)
+                        max_probs = list(np.max(pred_probs, axis=1))
+                        for i, prob_i in enumerate(max_probs):
+                            if prob_i < (1/15)*2:
+                                pred_label_ids[i] = len(label_list)-1 #oos indice
 
-                        # pred_label_ids = []
-                        # for p in pred_indices:
-                        #     pred_label_ids.append(0 if p == 0 else 1)
+
+                        print('pred_label_ids:', pred_label_ids)
 
                         gold_label_ids = gold_label_ids
                         assert len(pred_label_ids) == len(gold_label_ids)
