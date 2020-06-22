@@ -557,7 +557,7 @@ def main():
     label_list=finetune_label_list+meta_label_list+['oos']
     assert len(label_list) ==  15*10+1
     num_labels = len(label_list)-1
-    assert num_labels = 15*10
+    assert num_labels == 15*10
 
     # train_examples = None
     # num_train_optimization_steps = None
