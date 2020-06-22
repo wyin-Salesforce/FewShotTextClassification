@@ -724,8 +724,8 @@ def main():
                         class_reps_history = class_reps_history[-5:]
                         class_bias_history = class_bias_history[-5:]
 
-                    class_representation_matrix = torch.cat(class_reps_history[-2:], dim=0) #(15*5, 1024)
-                    class_bias_vector = torch.cat(class_bias_history[-2:]) #15*5
+                    class_representation_matrix = torch.cat(class_reps_history[-5:], dim=0) #(15*5, 1024)
+                    class_bias_vector = torch.cat(class_bias_history[-5:]) #15*5
                     '''
                     start evaluate on dev set after this epoch
                     '''
