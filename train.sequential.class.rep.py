@@ -697,7 +697,7 @@ def main():
         class_reps_history = []
         class_bias_history = []
         '''first train on meta_train tasks'''
-        for meta_epoch_i in trange(10, desc="metaEpoch"):
+        for meta_epoch_i in trange(1, desc="metaEpoch"):
             for step, batch in enumerate(tqdm(meta_train_dataloader, desc="Iteration")):
                 model.train()
                 batch = tuple(t.to(device) for t in batch)
@@ -714,7 +714,7 @@ def main():
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
-                print('meta_epoch_i', meta_epoch_i, ' loss:', loss)
+                # print('meta_epoch_i', meta_epoch_i, ' loss:', loss)
 
         '''get class representation after pretraining'''
         model.eval()
