@@ -677,7 +677,7 @@ def main():
 
         meta_train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
         meta_train_sampler = RandomSampler(meta_train_data)
-        meta_train_dataloader = DataLoader(meta_train_data, sampler=meta_train_sampler, batch_size=args.train_batch_size)
+        meta_train_dataloader = DataLoader(meta_train_data, sampler=meta_train_sampler, batch_size=args.train_batch_size*100)
 
 
         all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
