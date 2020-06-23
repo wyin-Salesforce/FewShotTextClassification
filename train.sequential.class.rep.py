@@ -854,6 +854,7 @@ def main():
                         wenpeng added a softxmax so that each row is a prob vec
                         '''
                         pred_probs = softmax(preds,axis=1)
+                        print('pred_probs:', pred_probs)
                         pred_label_ids = list(np.argmax(pred_probs, axis=1))
                         max_probs = list(np.max(pred_probs, axis=1))
                         for i, prob_i in enumerate(max_probs):
