@@ -857,7 +857,7 @@ def main():
                         pred_label_ids = list(np.argmax(pred_probs, axis=1))
                         max_probs = list(np.max(pred_probs, axis=1))
                         for i, prob_i in enumerate(max_probs):
-                            if prob_i < (98/100):
+                            if prob_i < (99/100):
                                 pred_label_ids[i] = len(eval_label_list)-1 #oos indice
 
                         print('pred_label_ids:', pred_label_ids)
