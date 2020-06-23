@@ -560,9 +560,10 @@ def main():
     dev_examples+=oos_dev_examples
     eval_examples+=oos_test_examples
 
-    label_list=finetune_label_list+meta_label_list+['oos']
-    assert len(label_list) ==  15*10+1
-    num_labels = len(label_list)-1
+    eval_label_list = finetune_label_list+['oos']
+    label_list=finetune_label_list+meta_label_list#+['oos']
+    assert len(label_list) ==  15*10
+    num_labels = len(label_list)
     assert num_labels == 15*10
 
     # train_examples = None
@@ -628,7 +629,7 @@ def main():
         # dev_examples = processor.get_RTE_as_dev('/export/home/Dataset/glue_data/RTE/dev.tsv')
         # dev_examples = get_data_hulu('dev')
         dev_features = convert_examples_to_features(
-            dev_examples, finetune_label_list, args.max_seq_length, tokenizer, output_mode,
+            dev_examples, eval_label_list, args.max_seq_length, tokenizer, output_mode,
             cls_token_at_end=False,#bool(args.model_type in ['xlnet']),            # xlnet has a cls token at the end
             cls_token=tokenizer.cls_token,
             cls_token_segment_id=0,#2 if args.model_type in ['xlnet'] else 0,
@@ -652,7 +653,7 @@ def main():
         # eval_examples = processor.get_RTE_as_test('/export/home/Dataset/RTE/test_RTE_1235.txt')
         # eval_examples = get_data_hulu('test')
         eval_features = convert_examples_to_features(
-            eval_examples, finetune_label_list, args.max_seq_length, tokenizer, output_mode,
+            eval_examples, eval_label_list, args.max_seq_length, tokenizer, output_mode,
             cls_token_at_end=False,#bool(args.model_type in ['xlnet']),            # xlnet has a cls token at the end
             cls_token=tokenizer.cls_token,
             cls_token_segment_id=0,#2 if args.model_type in ['xlnet'] else 0,
@@ -857,13 +858,13 @@ def main():
                         max_probs = list(np.max(pred_probs, axis=1))
                         for i, prob_i in enumerate(max_probs):
                             if prob_i < (1/15)*2:
-                                pred_label_ids[i] = len(label_list)-1 #oos indice
+                                pred_label_ids[i] = len(eval_label_list)-1 #oos indice
 
                         print('pred_label_ids:', pred_label_ids)
                         print('gold_label_ids:', gold_label_ids)
-                        print('len(label_list)-1:', len(label_list)-1)
-                        pred_oos = [1 if x == len(label_list)-1 else 0 for x in pred_label_ids ]
-                        gold_oos = [1 if x == len(label_list)-1 else 0 for x in gold_label_ids ]
+                        print('len(eval_label_list)-1:', len(eval_label_list)-1)
+                        pred_oos = [1 if x == len(eval_label_list)-1 else 0 for x in pred_label_ids ]
+                        gold_oos = [1 if x == len(eval_label_list)-1 else 0 for x in gold_label_ids ]
 
                         overlap_oos = 0
                         for i in range(len(pred_oos)):
@@ -884,7 +885,7 @@ def main():
                         hit_co = 0
                         sum_co = 0
                         for k in range(len(pred_label_ids)):
-                            if gold_label_ids[k]!=len(label_list)-1:
+                            if gold_label_ids[k]!=len(eval_label_list)-1:
                                 sum_co+=1
                                 if pred_label_ids[k] == gold_label_ids[k]:
                                     hit_co +=1
