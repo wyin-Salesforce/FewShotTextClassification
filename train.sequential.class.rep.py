@@ -282,8 +282,6 @@ def convert_examples_to_features(examples, label_list, max_seq_length,
     """
 
     label_map = {label : i for i, label in enumerate(label_list)}
-    print('label_map:', label_map)
-    # exit(0)
 
     features = []
     for (ex_index, example) in enumerate(examples):
@@ -859,7 +857,7 @@ def main():
                         pred_label_ids = list(np.argmax(pred_probs, axis=1))
                         max_probs = list(np.max(pred_probs, axis=1))
                         for i, prob_i in enumerate(max_probs):
-                            if prob_i < (95/100):
+                            if prob_i < (98/100):
                                 pred_label_ids[i] = len(eval_label_list)-1 #oos indice
 
                         print('pred_label_ids:', pred_label_ids)
