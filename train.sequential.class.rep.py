@@ -853,8 +853,8 @@ def main():
                             if prob_i < (1/15)*2:
                                 pred_label_ids[i] = len(label_list)-1 #oos indice
 
-                        pred_oos = [1 for x in pred_label_ids if x == len(label_list)-1 else 0]
-                        gold_oos = [1 for x in gold_label_ids if x == len(label_list)-1 else 0]
+                        pred_oos = [1 if x == len(label_list)-1 else 0 for x in pred_label_ids ]
+                        gold_oos = [1 if x == len(label_list)-1 else 0 for x in gold_label_ids ]
 
                         overlap_oos = 0
                         for i in range(len(pred_oos)):
