@@ -855,6 +855,7 @@ def main():
                         '''
                         pred_probs = softmax(preds,axis=1)
                         print('pred_probs:', pred_probs)
+                        print('max probs:', list(np.max(pred_probs, axis=1)))
                         pred_label_ids = list(np.argmax(pred_probs, axis=1))
                         max_probs = list(np.max(pred_probs, axis=1))
                         for i, prob_i in enumerate(max_probs):
