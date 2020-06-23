@@ -860,9 +860,9 @@ def main():
                             if prob_i < (1/15)*2:
                                 pred_label_ids[i] = len(eval_label_list)-1 #oos indice
 
-                        print('pred_label_ids:', pred_label_ids)
-                        print('gold_label_ids:', gold_label_ids)
-                        print('len(eval_label_list)-1:', len(eval_label_list)-1)
+                        # print('pred_label_ids:', pred_label_ids)
+                        # print('gold_label_ids:', gold_label_ids)
+                        # print('len(eval_label_list)-1:', len(eval_label_list)-1)
                         pred_oos = [1 if x == len(eval_label_list)-1 else 0 for x in pred_label_ids ]
                         gold_oos = [1 if x == len(eval_label_list)-1 else 0 for x in gold_label_ids ]
 
