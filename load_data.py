@@ -348,6 +348,46 @@ def load_CLINC150_without_specific_domain(domain_name):
     print('size:', len(train_examples), len(dev_examples), len(test_examples))
     return train_examples, dev_examples, test_examples, interested_intents
 
+def load_OOS():
+
+    readfile = codecs.open('/export/home/Dataset/CLINC150/data_full.json', 'r', 'utf-8')
+    file2dict =  json.load(readfile)
+    dev_intent2examples={}
+    test_intent2examples={}
+
+    for key, value in file2dict.items():
+        if key in set(['oos_val','oos_test']):
+            for sub_list in value:
+                sentence = sub_list[0].strip()
+                intent = 'oos'
+                if key == 'oos_val':
+                    examples = dev_intent2examples.get(intent)
+                    if examples is None:
+                        examples = []
+                    examples.append(sentence)
+                    dev_intent2examples[intent] = examples
+                else:
+                    examples = test_intent2examples.get(intent)
+                    if examples is None:
+                        examples = []
+                    examples.append(sentence)
+                    test_intent2examples[intent] = examples
+    '''dev'''
+    dev_examples = []
+    for intent, example_list in dev_intent2examples.items():
+        sampled_examples = example_list#random.sample(example_list, k)
+        for example in sampled_examples:
+            dev_examples.append(
+                InputExample(guid='dev_ex', text_a=example, text_b=None, label=intent))
+    '''test'''
+    test_examples = []
+    for intent, example_list in test_intent2examples.items():
+        sampled_examples = example_list#random.sample(example_list, k)
+        for example in sampled_examples:
+            test_examples.append(
+                InputExample(guid='test_ex', text_a=example, text_b=None, label=intent))
+    print('size:', len(dev_examples), len(test_examples))
+    return dev_examples, test_examples
 
 if __name__ == "__main__":
     load_CLINC150()

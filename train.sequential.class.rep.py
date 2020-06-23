@@ -38,7 +38,7 @@ from scipy.special import softmax
 # from scipy.stats import pearsonr, spearmanr
 # from sklearn.metrics import matthews_corrcoef, f1_score
 
-from load_data import load_CLINC150_with_specific_domain_sequence, load_CLINC150_without_specific_domain
+from load_data import load_CLINC150_with_specific_domain_sequence, load_CLINC150_without_specific_domain, load_OOS
 
 from transformers.tokenization_roberta import RobertaTokenizer
 from transformers.optimization import AdamW
@@ -554,6 +554,10 @@ def main():
 
     meta_train_examples, meta_dev_examples, meta_test_examples, meta_label_list = load_CLINC150_without_specific_domain('banking')
     train_examples, dev_examples, eval_examples, finetune_label_list = load_CLINC150_with_specific_domain_sequence('banking', args.kshot, augment=args.do_data_aug)
+    oos_dev_examples, oos_test_examples = load_OOS()
+    dev_examples+=oos_dev_examples
+    eval_examples+=oos_test_examples
+
     label_list=finetune_label_list+meta_label_list+['oos']
     assert len(label_list) ==  15*10+1
     num_labels = len(label_list)-1
