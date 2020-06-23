@@ -875,7 +875,7 @@ def main():
                             precision_oos = 0.0
                         else:
                             precision_oos = overlap_oos/sum(pred_oos)
-                        f1_oos = 2*recall_oos*precision_oos/(recall_oos+precision_oos)
+                        f1_oos = 2*recall_oos*precision_oos/(recall_oos+precision_oos+1e-6)
 
 
 
