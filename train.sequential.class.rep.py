@@ -853,29 +853,51 @@ def main():
                             if prob_i < (1/15)*2:
                                 pred_label_ids[i] = len(label_list)-1 #oos indice
 
+                        pred_oos = [1 for x in pred_label_ids if x == len(label_list)-1 else 0]
+                        gold_oos = [1 for x in gold_label_ids if x == len(label_list)-1 else 0]
+
+                        overlap_oos = 0
+                        for i in range(len(pred_oos)):
+                            if gold_oos[i] == 1 and  pred_oos[i] ==1:
+                                overlap_oos +=1
+                        recall_oos = overlap_oos/sum(gold_oos)
+                        precision_oos = overlap_oos/sum(pred_oos)
+                        f1_oos = 2*recall_oos*precision_oos/(recall_oos+precision_oos)
+
+
+
+
 
                         # print('pred_label_ids:', pred_label_ids)
 
                         gold_label_ids = gold_label_ids
                         assert len(pred_label_ids) == len(gold_label_ids)
                         hit_co = 0
+                        sum_co = 0
                         for k in range(len(pred_label_ids)):
-                            if pred_label_ids[k] == gold_label_ids[k]:
-                                hit_co +=1
-                        test_acc = hit_co/len(gold_label_ids)
+                            if gold_label_ids[k]!=len(label_list)-1:
+                                sum_co+=1
+                                if pred_label_ids[k] == gold_label_ids[k]:
+                                    hit_co +=1
+                        if idd == 0:
+                            assert sum_co == 15*20
+                        else:
+                            assert sum_co == 15*30
+                        test_acc = hit_co/sum_co
 
                         if idd == 0: # this is dev
                             if test_acc > max_dev_acc:
                                 max_dev_acc = test_acc
-                                print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, '\n')
+                                print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, 'OOS:',recall_oos, precision_oos, f1_oos, '\n')
 
                             else:
-                                print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, '\n')
+                                print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, 'OOS:',recall_oos, precision_oos, f1_oos, '\n')
                                 break
                         else: # this is test
                             if test_acc > max_test_acc:
                                 max_test_acc = test_acc
-                            print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
+                            print('\ttest acc:', test_acc, ' max_test_acc:', max_test_acc, 'OOS:',recall_oos, precision_oos, f1_oos, '\n')
+                            # print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
 
 
 
