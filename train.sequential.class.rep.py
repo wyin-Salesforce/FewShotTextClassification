@@ -871,7 +871,10 @@ def main():
                             if gold_oos[i] == 1 and  pred_oos[i] ==1:
                                 overlap_oos +=1
                         recall_oos = overlap_oos/sum(gold_oos)
-                        precision_oos = overlap_oos/sum(pred_oos)
+                        if sum(pred_oos) == 0:
+                            precision_oos = 0.0
+                        else:
+                            precision_oos = overlap_oos/sum(pred_oos)
                         f1_oos = 2*recall_oos*precision_oos/(recall_oos+precision_oos)
 
 
