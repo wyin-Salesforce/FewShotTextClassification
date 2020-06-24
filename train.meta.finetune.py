@@ -662,11 +662,6 @@ def main():
         eval_sampler = SequentialSampler(eval_data)
         eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=args.eval_batch_size)
 
-        logger.info("***** Running training *****")
-        logger.info("  Num examples = %d", len(train_examples))
-        logger.info("  Batch size = %d", args.train_batch_size)
-        # logger.info("  Num steps = %d", num_train_optimization_steps)
-
         all_input_ids = torch.tensor([f.input_ids for f in meta_train_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in meta_train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in meta_train_features], dtype=torch.long)
