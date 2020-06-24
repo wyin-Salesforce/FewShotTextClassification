@@ -760,7 +760,7 @@ def main():
                         else: # this is test
                             if test_acc > max_test_acc:
                                 max_test_acc = test_acc
-                            print('\ttest acc:', test_acc, ' max_test_acc:',  '\n')
+                            print('\ntest acc:', test_acc, ' max_test_acc:',  '\n')
                             # print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
 
 
@@ -772,4 +772,4 @@ if __name__ == "__main__":
     because classifier not initlized, so smaller learning rate 2e-6
     and fine-tune roberta-large needs more epochs
     '''
-# CUDA_VISIBLE_DEVICES=0 python -u train.roberta.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 200 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 5
+# CUDA_VISIBLE_DEVICES=0 python -u train.roberta.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3
