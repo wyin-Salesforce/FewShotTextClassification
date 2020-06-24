@@ -484,6 +484,10 @@ def main():
                         type=int,
                         default=42,
                         help="random seed for initialization")
+    parser.add_argument('--meta_epochs',
+                        type=int,
+                        default=10,
+                        help="random seed for initialization")
     parser.add_argument('--kshot',
                         type=int,
                         default=5,
@@ -554,29 +558,17 @@ def main():
 
     meta_train_examples, meta_dev_examples, meta_test_examples, meta_label_list = load_CLINC150_without_specific_domain(args.DomainName)
     train_examples, dev_examples, eval_examples, finetune_label_list = load_CLINC150_with_specific_domain_sequence(args.DomainName, args.kshot, augment=args.do_data_aug)
-    oos_dev_examples, oos_test_examples = load_OOS()
-    dev_examples+=oos_dev_examples
-    eval_examples+=oos_test_examples
+    # oos_dev_examples, oos_test_examples = load_OOS()
+    # dev_examples+=oos_dev_examples
+    # eval_examples+=oos_test_examples
 
-    eval_label_list = finetune_label_list+['oos']
+    eval_label_list = finetune_label_list#+['oos']
     label_list=finetune_label_list+meta_label_list#+['oos']
     assert len(label_list) ==  15*10
     num_labels = len(label_list)
     assert num_labels == 15*10
 
-    # train_examples = None
-    # num_train_optimization_steps = None
-    # if args.do_train:
-    #     num_train_optimization_steps = int(
-    #         len(train_examples) / args.train_batch_size / args.gradient_accumulation_steps) * args.num_train_epochs
-    #     if args.local_rank != -1:
-    #         num_train_optimization_steps = num_train_optimization_steps // torch.distributed.get_world_size()
 
-    # Prepare model
-    # cache_dir = args.cache_dir if args.cache_dir else os.path.join(str(PYTORCH_TRANSFORMERS_CACHE), 'distributed_{}'.format(args.local_rank))
-
-    # pretrain_model_dir = 'roberta-large-mnli' #'roberta-large' , 'roberta-large-mnli'
-    # pretrain_model_dir = '/export/home/Dataset/BERT_pretrained_mine/crossdataentail/trainMNLItestRTE/0.8772563176895307'
     model = RobertaForSequenceClassification(num_labels)
 
 
@@ -702,7 +694,7 @@ def main():
         class_reps_history = []
         class_bias_history = []
         '''first train on meta_train tasks'''
-        for meta_epoch_i in trange(1, desc="metaEpoch"):
+        for meta_epoch_i in trange(args.meta_epochs, desc="metaEpoch"):
             for step, batch in enumerate(tqdm(meta_train_dataloader, desc="Iteration")):
                 model.train()
                 batch = tuple(t.to(device) for t in batch)
@@ -736,6 +728,8 @@ def main():
             last_reps_list.append(last_reps.mean(dim=0, keepdim=True)) #(1, 1024)
         class_reps_pretraining = torch.cat(last_reps_list, dim=0) #(15, 1024)
         '''second finetune'''
+        max_dev_test = [0,0]
+        fine_max_dev = False
         for _ in trange(int(args.num_train_epochs), desc="Epoch"):
             tr_loss = 0
             nb_tr_examples, nb_tr_steps = 0, 0
@@ -782,15 +776,6 @@ def main():
                         last_reps_list.append(last_reps.mean(dim=0, keepdim=True)) #(1, 1024)
                     class_reps_finetune = torch.cat(last_reps_list, dim=0) #(15, 1024)
                     bias_finetune = bias[:15] #the first 15 classes is for the target domain
-
-                    # class_reps_history.append(class_reps_i)
-                    # class_bias_history.append(bias)
-                    # if len(class_reps_history)>5:
-                    #     class_reps_history = class_reps_history[-5:]
-                    #     class_bias_history = class_bias_history[-5:]
-                    #
-                    # class_representation_matrix = torch.cat(class_reps_history[-5:], dim=0) #(15*5, 1024)
-                    # class_bias_vector = torch.cat(class_bias_history[-5:]) #15*5
                     '''
                     start evaluate on dev set after this epoch
                     '''
@@ -833,12 +818,6 @@ def main():
                             logits = logits_pretrain+logits_finetune
                             # logits = (1-0.9)*logits+0.9*logits_LR
 
-
-                            # loss_fct = CrossEntropyLoss()
-                            # tmp_eval_loss = loss_fct(logits.view(-1, num_labels), label_ids.view(-1))
-
-                            # eval_loss += tmp_eval_loss.mean().item()
-                            # nb_eval_steps += 1
                             if len(preds) == 0:
                                 preds.append(logits.detach().cpu().numpy())
                             else:
@@ -852,67 +831,35 @@ def main():
                         wenpeng added a softxmax so that each row is a prob vec
                         '''
                         pred_probs = softmax(preds,axis=1)
-                        print('pred_probs:', pred_probs)
-                        print('max probs:', list(np.max(pred_probs, axis=1)))
                         pred_label_ids = list(np.argmax(pred_probs, axis=1))
-                        max_probs = list(np.max(pred_probs, axis=1))
-                        for i, prob_i in enumerate(max_probs):
-                            if prob_i < (99/100):
-                                pred_label_ids[i] = len(eval_label_list)-1 #oos indice
-
-                        print('pred_label_ids:', pred_label_ids)
-                        print('gold_label_ids:', gold_label_ids)
-                        # print('len(eval_label_list)-1:', len(eval_label_list)-1)
-                        pred_oos = [1 if x == len(eval_label_list)-1 else 0 for x in pred_label_ids ]
-                        gold_oos = [1 if x == len(eval_label_list)-1 else 0 for x in gold_label_ids ]
-
-                        overlap_oos = 0
-                        for i in range(len(pred_oos)):
-                            if gold_oos[i] == 1 and  pred_oos[i] ==1:
-                                overlap_oos +=1
-                        recall_oos = overlap_oos/sum(gold_oos)
-                        if sum(pred_oos) == 0:
-                            precision_oos = 0.0
-                        else:
-                            precision_oos = overlap_oos/sum(pred_oos)
-                        f1_oos = 2*recall_oos*precision_oos/(recall_oos+precision_oos+1e-6)
-
-
-
-
-
-                        # print('pred_label_ids:', pred_label_ids)
-
                         gold_label_ids = gold_label_ids
                         assert len(pred_label_ids) == len(gold_label_ids)
                         hit_co = 0
-                        sum_co = 0
+
                         for k in range(len(pred_label_ids)):
-                            if gold_label_ids[k]!=len(eval_label_list)-1:
-                                sum_co+=1
-                                if pred_label_ids[k] == gold_label_ids[k]:
-                                    hit_co +=1
-                        if idd == 0:
-                            assert sum_co == 15*20
-                        else:
-                            assert sum_co == 15*30
-                        test_acc = hit_co/sum_co
+                            if pred_label_ids[k] == gold_label_ids[k]:
+                                hit_co +=1
+                        test_acc = hit_co/len(gold_label_ids)
 
                         if idd == 0: # this is dev
                             if test_acc > max_dev_acc:
                                 max_dev_acc = test_acc
-                                print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, 'OOS:',recall_oos, precision_oos, f1_oos, '\n')
-
+                                print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, '\n')
+                                fine_max_dev=True
+                                max_dev_test[0] = max_dev_acc
                             else:
-                                print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, 'OOS:',recall_oos, precision_oos, f1_oos, '\n')
+                                print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, '\n')
                                 break
                         else: # this is test
                             if test_acc > max_test_acc:
                                 max_test_acc = test_acc
-                            print('\ttest acc:', test_acc, ' max_test_acc:', max_test_acc, 'OOS:',recall_oos, precision_oos, f1_oos, '\n')
+                            if fine_max_dev:
+                                max_dev_test[1] = test_acc
+                                fine_max_dev = False
+                            print('\ttest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
                             # print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
 
-
+        print('final:', max_dev_test, '\n')
 
 
 if __name__ == "__main__":
@@ -921,4 +868,4 @@ if __name__ == "__main__":
     because classifier not initlized, so smaller learning rate 2e-6
     and fine-tune roberta-large needs more epochs
     '''
-# CUDA_VISIBLE_DEVICES=0 python -u train.sequential.class.rep.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --DomainName 'banking'
+# CUDA_VISIBLE_DEVICES=0 python -u train.meta.classifier.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --meta_epochs 3 --DomainName 'banking'
