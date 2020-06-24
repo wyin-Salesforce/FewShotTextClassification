@@ -673,6 +673,8 @@ def main():
 
 
         iter_co = 0
+        max_dev_test = [0,0]
+        fine_max_dev = False
         for _ in trange(int(args.num_train_epochs), desc="Epoch"):
             tr_loss = 0
             nb_tr_examples, nb_tr_steps = 0, 0
@@ -753,6 +755,8 @@ def main():
                             if test_acc > max_dev_acc:
                                 max_dev_acc = test_acc
                                 print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, '\n')
+                                fine_max_dev=True
+                                max_dev_test[0] = max_dev_acc
 
                             else:
                                 print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc,'\n')
@@ -760,9 +764,14 @@ def main():
                         else: # this is test
                             if test_acc > max_test_acc:
                                 max_test_acc = test_acc
+
+                            if fine_max_dev:
+                                max_dev_test[1] = test_acc
+                                fine_max_dev = False
+
                             print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
 
-
+        print('final:', max_dev_test)
 
 
 if __name__ == "__main__":
