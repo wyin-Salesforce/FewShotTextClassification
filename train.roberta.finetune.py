@@ -430,7 +430,7 @@ def main():
                         help="The output directory where the model predictions and checkpoints will be written.")
 
     ## Other parameters
-    parser.add_argument("--cache_dir",
+    parser.add_argument("--DomainName",
                         default="",
                         type=str,
                         help="Where do you want to store the pre-trained models downloaded from s3")
@@ -553,7 +553,7 @@ def main():
     # label_list = ['How_do_I_create_a_profile_v4', 'Profile_Switch_v4', 'Deactivate_Active_Devices_v4', 'Ads_on_Hulu_v4', 'Watching_Hulu_with_Live_TV_v4', 'Hulu_Costs_and_Commitments_v4', 'offline_downloads_v4', 'womens_world_cup_v5', 'forgot_username_v4', 'confirm_account_cancellation_v4', 'Devices_to_Watch_HBO_on_v4', 'remove_add_on_v4', 'Internet_Speed_for_HD_and_4K_v4', 'roku_related_questions_v4', 'amazon_related_questions_v4', 'Clear_Browser_Cache_v4', 'ads_on_ad_free_plan_v4', 'inappropriate_ads_v4', 'itunes_related_questions_v4', 'Internet_Speed_Recommendations_v4', 'NBA_Basketball_v5', 'unexpected_charges_v4', 'change_billing_date_v4', 'NFL_on_Hulu_v5', 'How_to_delete_a_profile_v4', 'Devices_to_Watch_Hulu_on_v4', 'Manage_your_Hulu_subscription_v4', 'cancel_hulu_account_v4', 'disney_bundle_v4', 'payment_issues_v4', 'home_network_location_v4', 'Main_Menu_v4', 'Resetting_Hulu_Password_v4', 'Update_Payment_v4', 'I_need_general_troubleshooting_help_v4', 'What_is_Hulu_v4', 'sprint_related_questions_v4', 'Log_into_TV_with_activation_code_v4', 'Game_of_Thrones_v4', 'video_playback_issues_v4', 'How_to_edit_a_profile_v4', 'Watchlist_Remove_Video_v4', 'spotify_related_questions_v4', 'Deactivate_Login_Sessions_v4', 'Transfer_to_Agent_v4', 'Use_Hulu_Internationally_v4']
 
     # meta_train_examples, meta_dev_examples, meta_test_examples, meta_label_list = load_CLINC150_without_specific_domain('banking')
-    train_examples, dev_examples, eval_examples, finetune_label_list = load_CLINC150_with_specific_domain_sequence('banking', args.kshot, augment=args.do_data_aug)
+    train_examples, dev_examples, eval_examples, finetune_label_list = load_CLINC150_with_specific_domain_sequence(DomainName, args.kshot, augment=args.do_data_aug)
     # oos_dev_examples, oos_test_examples = load_OOS()
     # dev_examples+=oos_dev_examples
     # eval_examples+=oos_test_examples
@@ -760,8 +760,7 @@ def main():
                         else: # this is test
                             if test_acc > max_test_acc:
                                 max_test_acc = test_acc
-                            print('\ntest acc:', test_acc, ' max_test_acc:',  '\n')
-                            # print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
+                            print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
 
 
 
@@ -772,4 +771,4 @@ if __name__ == "__main__":
     because classifier not initlized, so smaller learning rate 2e-6
     and fine-tune roberta-large needs more epochs
     '''
-# CUDA_VISIBLE_DEVICES=0 python -u train.roberta.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3
+# CUDA_VISIBLE_DEVICES=0 python -u train.roberta.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --DomainName 'credit cards'
