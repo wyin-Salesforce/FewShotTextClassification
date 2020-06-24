@@ -599,18 +599,6 @@ def main():
     max_test_acc = 0.0
     max_dev_acc = 0.0
     if args.do_train:
-        meta_train_features = convert_examples_to_features(
-            meta_train_examples, label_list, args.max_seq_length, tokenizer, output_mode,
-            cls_token_at_end=False,#bool(args.model_type in ['xlnet']),            # xlnet has a cls token at the end
-            cls_token=tokenizer.cls_token,
-            cls_token_segment_id=0,#2 if args.model_type in ['xlnet'] else 0,
-            sep_token=tokenizer.sep_token,
-            sep_token_extra=True,#bool(args.model_type in ['roberta']),           # roberta uses an extra separator b/w pairs of sentences, cf. github.com/pytorch/fairseq/commit/1684e166e3da03f5b600dbb7855cb98ddfcd0805
-            pad_on_left=False,#bool(args.model_type in ['xlnet']),                 # pad on the left for xlnet
-            pad_token=tokenizer.convert_tokens_to_ids([tokenizer.pad_token])[0],
-            pad_token_segment_id=0)#4 if args.model_type in ['xlnet'] else 0,)
-
-
         train_features = convert_examples_to_features(
             train_examples, label_list, args.max_seq_length, tokenizer, output_mode,
             cls_token_at_end=False,#bool(args.model_type in ['xlnet']),            # xlnet has a cls token at the end
@@ -674,16 +662,6 @@ def main():
         logger.info("  Batch size = %d", args.train_batch_size)
         # logger.info("  Num steps = %d", num_train_optimization_steps)
 
-        all_input_ids = torch.tensor([f.input_ids for f in meta_train_features], dtype=torch.long)
-        all_input_mask = torch.tensor([f.input_mask for f in meta_train_features], dtype=torch.long)
-        all_segment_ids = torch.tensor([f.segment_ids for f in meta_train_features], dtype=torch.long)
-        all_label_ids = torch.tensor([f.label_id for f in meta_train_features], dtype=torch.long)
-
-        meta_train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
-        meta_train_sampler = RandomSampler(meta_train_data)
-        meta_train_dataloader = DataLoader(meta_train_data, sampler=meta_train_sampler, batch_size=args.train_batch_size*10)
-
-
         all_input_ids = torch.tensor([f.input_ids for f in train_features], dtype=torch.long)
         all_input_mask = torch.tensor([f.input_mask for f in train_features], dtype=torch.long)
         all_segment_ids = torch.tensor([f.segment_ids for f in train_features], dtype=torch.long)
@@ -692,9 +670,6 @@ def main():
         train_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_label_ids)
         train_sampler = RandomSampler(train_data)
         train_dataloader = DataLoader(train_data, sampler=train_sampler, batch_size=args.train_batch_size)
-        '''support labeled examples in order, group in kshot size'''
-        support_sampler = SequentialSampler(train_data)
-        support_dataloader = DataLoader(train_data, sampler=support_sampler, batch_size=args.kshot)
 
 
         iter_co = 0
@@ -797,4 +772,4 @@ if __name__ == "__main__":
     because classifier not initlized, so smaller learning rate 2e-6
     and fine-tune roberta-large needs more epochs
     '''
-# CUDA_VISIBLE_DEVICES=6 python -u train.sequential.class.rep.py --task_name rte --do_train --do_lower_case --num_train_epochs 200 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 1 --do_data_aug
+# CUDA_VISIBLE_DEVICES=0 python -u train.roberta.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 200 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 5
