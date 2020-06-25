@@ -839,6 +839,7 @@ def main():
                             # print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
 
         print('final:', str(max_dev_test[0])+'/'+str(max_dev_test[1]), '\n')
+        print('args:', args)
 
 
 if __name__ == "__main__":
@@ -847,4 +848,4 @@ if __name__ == "__main__":
     because classifier not initlized, so smaller learning rate 2e-6
     and fine-tune roberta-large needs more epochs
     '''
-# CUDA_VISIBLE_DEVICES=2 python -u train.meta.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --meta_epochs 3 --DomainName 'banking'
+# CUDA_VISIBLE_DEVICES=0 python -u train.meta.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --meta_epochs 6 --DomainName 'banking'
