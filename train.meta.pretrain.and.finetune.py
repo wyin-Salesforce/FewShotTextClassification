@@ -808,7 +808,7 @@ def main():
                             '''finetune logits'''
                             raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_reps_finetune, 0,1)) #(batch, 15*history)
                             # biased_similarity_scores = raw_similarity_scores+bias_finetune.view(-1, raw_similarity_scores.shape[1])
-                            alpha=0.9
+                            alpha=0.7
                             biased_similarity_scores = (1-alpha)*biased_similarity_scores_pretrain+alpha*raw_similarity_scores +bias_finetune.view(-1, raw_similarity_scores.shape[1])
                             logits_finetune = torch.max(biased_similarity_scores.view(args.eval_batch_size, -1, len(finetune_label_list)), dim=1)[0] #(batch, #class)
                             # alpha=0.5
