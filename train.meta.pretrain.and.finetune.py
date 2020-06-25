@@ -820,11 +820,6 @@ def main():
 
                         # eval_loss = eval_loss / nb_eval_steps
                         preds = preds[0]
-
-                        '''
-                        preds: size*3 ["entailment", "neutral", "contradiction"]
-                        wenpeng added a softxmax so that each row is a prob vec
-                        '''
                         pred_probs = softmax(preds,axis=1)
                         pred_label_ids = list(np.argmax(pred_probs, axis=1))
                         gold_label_ids = gold_label_ids
@@ -841,7 +836,7 @@ def main():
                                 max_dev_acc = test_acc
                                 print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, '\n')
                                 fine_max_dev=True
-                                max_dev_test[0] = max_dev_acc
+                                max_dev_test[0] = round(max_dev_acc*100, 2)
                             else:
                                 print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, '\n')
                                 break
@@ -849,12 +844,13 @@ def main():
                             if test_acc > max_test_acc:
                                 max_test_acc = test_acc
                             if fine_max_dev:
-                                max_dev_test[1] = test_acc
+                                max_dev_test[1] = round(test_acc*100,2)
                                 fine_max_dev = False
                             print('\ttest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
                             # print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
 
-        print('final:', max_dev_test, '\n')
+        print('final:', str(max_dev_test[0])+'/'+str(max_dev_test[1]), '\n')
+        print('args:', args)
 
 
 if __name__ == "__main__":
@@ -863,4 +859,4 @@ if __name__ == "__main__":
     because classifier not initlized, so smaller learning rate 2e-6
     and fine-tune roberta-large needs more epochs
     '''
-# CUDA_VISIBLE_DEVICES=0 python -u train.meta.classifier.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --meta_epochs 3 --DomainName 'banking'
+# CUDA_VISIBLE_DEVICES=0 python -u train.meta.pretrain.and.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --meta_epochs 6 --DomainName 'banking'
