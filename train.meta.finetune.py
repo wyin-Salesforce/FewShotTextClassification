@@ -686,8 +686,8 @@ def main():
 
 
         iter_co = 0
-        class_reps_history = []
-        class_bias_history = []
+        # class_reps_history = []
+        # class_bias_history = []
         '''first train on meta_train tasks'''
         for meta_epoch_i in trange(args.meta_epochs, desc="metaEpoch"):
             for step, batch in enumerate(tqdm(meta_train_dataloader, desc="Iteration")):
@@ -708,20 +708,20 @@ def main():
                 optimizer.zero_grad()
                 # print('meta_epoch_i', meta_epoch_i, ' loss:', loss)
 
-        '''get class representation after pretraining'''
-        model.eval()
-        last_reps_list = []
-        for input_ids, input_mask, segment_ids, label_ids in support_dataloader:
-            input_ids = input_ids.to(device)
-            input_mask = input_mask.to(device)
-            segment_ids = segment_ids.to(device)
-            label_ids = label_ids.to(device)
-            # gold_label_ids+=list(label_ids.detach().cpu().numpy())
-
-            with torch.no_grad():
-                logits, last_reps, bias = model(input_ids, input_mask, None, labels=None)
-            last_reps_list.append(last_reps.mean(dim=0, keepdim=True)) #(1, 1024)
-        class_reps_pretraining = torch.cat(last_reps_list, dim=0) #(15, 1024)
+        # '''get class representation after pretraining'''
+        # model.eval()
+        # last_reps_list = []
+        # for input_ids, input_mask, segment_ids, label_ids in support_dataloader:
+        #     input_ids = input_ids.to(device)
+        #     input_mask = input_mask.to(device)
+        #     segment_ids = segment_ids.to(device)
+        #     label_ids = label_ids.to(device)
+        #     # gold_label_ids+=list(label_ids.detach().cpu().numpy())
+        #
+        #     with torch.no_grad():
+        #         logits, last_reps, bias = model(input_ids, input_mask, None, labels=None)
+        #     last_reps_list.append(last_reps.mean(dim=0, keepdim=True)) #(1, 1024)
+        # class_reps_pretraining = torch.cat(last_reps_list, dim=0) #(15, 1024)
         '''second finetune'''
         max_dev_test = [0,0]
         fine_max_dev = False
@@ -799,18 +799,18 @@ def main():
                                 logits_LR, reps_batch, _ = model(input_ids, input_mask, None, labels=None)
                             # logits = logits[0]
 
-                            '''pretraining logits'''
-                            raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_reps_pretraining, 0,1)) #(batch, 15)
-                            # print('raw_similarity_scores shaoe:', raw_similarity_scores.shape)
-                            # print('bias_finetune:', bias_finetune.shape)
-                            biased_similarity_scores = raw_similarity_scores+bias_finetune.view(-1, raw_similarity_scores.shape[1])
-                            logits_pretrain = torch.max(biased_similarity_scores.view(args.eval_batch_size, -1, len(finetune_label_list)), dim=1)[0] #(batch, #class)
+                            # '''pretraining logits'''
+                            # raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_reps_pretraining, 0,1)) #(batch, 15)
+                            # # print('raw_similarity_scores shaoe:', raw_similarity_scores.shape)
+                            # # print('bias_finetune:', bias_finetune.shape)
+                            # biased_similarity_scores = raw_similarity_scores+bias_finetune.view(-1, raw_similarity_scores.shape[1])
+                            # logits_pretrain = torch.max(biased_similarity_scores.view(args.eval_batch_size, -1, len(finetune_label_list)), dim=1)[0] #(batch, #class)
                             '''finetune logits'''
                             raw_similarity_scores = torch.mm(reps_batch,torch.transpose(class_reps_finetune, 0,1)) #(batch, 15*history)
                             biased_similarity_scores = raw_similarity_scores+bias_finetune.view(-1, raw_similarity_scores.shape[1])
                             logits_finetune = torch.max(biased_similarity_scores.view(args.eval_batch_size, -1, len(finetune_label_list)), dim=1)[0] #(batch, #class)
 
-                            logits = logits_pretrain+logits_finetune
+                            logits = logits_finetune
                             # logits = (1-0.9)*logits+0.9*logits_LR
 
                             if len(preds) == 0:
@@ -830,7 +830,6 @@ def main():
                         gold_label_ids = gold_label_ids
                         assert len(pred_label_ids) == len(gold_label_ids)
                         hit_co = 0
-
                         for k in range(len(pred_label_ids)):
                             if pred_label_ids[k] == gold_label_ids[k]:
                                 hit_co +=1
@@ -841,7 +840,7 @@ def main():
                                 max_dev_acc = test_acc
                                 print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, '\n')
                                 fine_max_dev=True
-                                max_dev_test[0] = max_dev_acc
+                                max_dev_test[0] = round(max_dev_acc*100, 2)
                             else:
                                 print('\ndev acc:', test_acc, ' max_dev_acc:', max_dev_acc, '\n')
                                 break
@@ -849,12 +848,12 @@ def main():
                             if test_acc > max_test_acc:
                                 max_test_acc = test_acc
                             if fine_max_dev:
-                                max_dev_test[1] = test_acc
+                                max_dev_test[1] = round(test_acc*100,2)
                                 fine_max_dev = False
                             print('\ttest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
                             # print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
 
-        print('final:', max_dev_test, '\n')
+        print('final:', max_dev_test[0],'/',max_dev_test[1], '\n')
 
 
 if __name__ == "__main__":
@@ -863,4 +862,4 @@ if __name__ == "__main__":
     because classifier not initlized, so smaller learning rate 2e-6
     and fine-tune roberta-large needs more epochs
     '''
-# CUDA_VISIBLE_DEVICES=0 python -u train.meta.classifier.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --meta_epochs 3 --DomainName 'banking'
+# CUDA_VISIBLE_DEVICES=0 python -u train.meta.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --meta_epochs 3 --DomainName 'banking'
