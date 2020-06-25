@@ -707,21 +707,6 @@ def main():
                 optimizer.step()
                 optimizer.zero_grad()
                 # print('meta_epoch_i', meta_epoch_i, ' loss:', loss)
-
-        # '''get class representation after pretraining'''
-        # model.eval()
-        # last_reps_list = []
-        # for input_ids, input_mask, segment_ids, label_ids in support_dataloader:
-        #     input_ids = input_ids.to(device)
-        #     input_mask = input_mask.to(device)
-        #     segment_ids = segment_ids.to(device)
-        #     label_ids = label_ids.to(device)
-        #     # gold_label_ids+=list(label_ids.detach().cpu().numpy())
-        #
-        #     with torch.no_grad():
-        #         logits, last_reps, bias = model(input_ids, input_mask, None, labels=None)
-        #     last_reps_list.append(last_reps.mean(dim=0, keepdim=True)) #(1, 1024)
-        # class_reps_pretraining = torch.cat(last_reps_list, dim=0) #(15, 1024)
         '''second finetune'''
         max_dev_test = [0,0]
         fine_max_dev = False
@@ -853,7 +838,7 @@ def main():
                             print('\ttest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
                             # print('\ntest acc:', test_acc, ' max_test_acc:', max_test_acc, '\n')
 
-        print('final:', max_dev_test[0],'/',max_dev_test[1], '\n')
+        print('final:', str(max_dev_test[0])+'/'+str(max_dev_test[1]), '\n')
 
 
 if __name__ == "__main__":
@@ -862,4 +847,4 @@ if __name__ == "__main__":
     because classifier not initlized, so smaller learning rate 2e-6
     and fine-tune roberta-large needs more epochs
     '''
-# CUDA_VISIBLE_DEVICES=0 python -u train.meta.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --meta_epochs 3 --DomainName 'banking'
+# CUDA_VISIBLE_DEVICES=2 python -u train.meta.finetune.py --task_name rte --do_train --do_lower_case --num_train_epochs 100 --data_dir '' --output_dir '' --train_batch_size 5 --eval_batch_size 5 --learning_rate 5e-6 --max_seq_length 20 --seed 42 --kshot 3 --meta_epochs 3 --DomainName 'banking'

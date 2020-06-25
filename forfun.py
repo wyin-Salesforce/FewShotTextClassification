@@ -2,9 +2,9 @@ import statistics
 
 #529.75
 # initializing list
-test_list = [70.22, 68.44, 76.44, 76.44, 75.78, 77.56]
+test_list = [64.22, 68.22, 69.56, 61.33, 70.67]
 print('sum:', sum(test_list))
-average = sum(test_list)/len(test_list)
-res = statistics.pstdev(test_list)
+average = round(sum(test_list)/len(test_list), 2)
+res = round(statistics.pstdev(test_list),2)
 
-print(average, res)
+print(str(average)+'/'+str(res))
